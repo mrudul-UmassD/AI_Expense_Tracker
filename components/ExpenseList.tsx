@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Expense, ExpenseCategory } from '../utils/types';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import ExpenseForm from './ExpenseForm';
+import { useSettings } from '../hooks/useSettings';
 
 type ExpenseListProps = {
   expenses: Expense[];
@@ -20,6 +21,8 @@ export default function ExpenseList({
   onEdit,
   onDelete,
 }: ExpenseListProps) {
+  const { settings } = useSettings();
+  const currency = settings?.profile?.currency || 'USD';
   const [searchTerm, setSearchTerm] = useState('');
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -90,6 +93,11 @@ export default function ExpenseList({
     }
   };
 
+  // Format amount with user's preferred currency
+  const formatAmount = (amount: number) => {
+    return formatCurrency(amount, currency);
+  };
+
   if (loading) {
     return (
       <div className="p-8 text-center">
@@ -104,8 +112,8 @@ export default function ExpenseList({
       {/* Edit Expense Modal */}
       {editingExpense && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold mb-4">Edit Expense</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Edit Expense</h2>
             <ExpenseForm
               onSubmit={handleEditSubmit}
               onCancel={() => setEditingExpense(null)}
@@ -117,6 +125,7 @@ export default function ExpenseList({
                 date: editingExpense.date,
                 recurring: editingExpense.recurring,
               }}
+              currency={currency}
             />
           </div>
         </div>
@@ -148,7 +157,7 @@ export default function ExpenseList({
               placeholder="Search expenses..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
         </div>
@@ -242,18 +251,18 @@ export default function ExpenseList({
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
               {filteredExpenses.map((expense) => (
-                <tr key={expense.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                     {formatDate(expense.date)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {expense.description}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span 
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
                       style={{
                         backgroundColor: `${getCategoryColor(expense.category)}20`,
                         color: getCategoryColor(expense.category),
@@ -262,16 +271,14 @@ export default function ExpenseList({
                       {getCategoryName(expense.category)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                    {formatCurrency(expense.amount)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    {formatAmount(expense.amount)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                     {expense.recurring ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {expense.recurring.frequency}
-                      </span>
+                      <span className="text-primary-600">{expense.recurring.frequency}</span>
                     ) : (
-                      <span className="text-gray-400">—</span>
+                      <span>-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

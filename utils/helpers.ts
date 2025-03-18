@@ -3,11 +3,23 @@ export const generateId = (): string => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 };
 
-// Format currency in USD
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
+// Format currency based on currency code
+export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+  const currencyLocaleMap: Record<string, string> = {
+    USD: 'en-US',
+    EUR: 'de-DE',
+    GBP: 'en-GB',
+    JPY: 'ja-JP',
+    CAD: 'en-CA',
+    AUD: 'en-AU',
+    INR: 'en-IN',
+  };
+  
+  const locale = currencyLocaleMap[currency] || 'en-US';
+  
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: currency,
     minimumFractionDigits: 2,
   }).format(amount);
 };

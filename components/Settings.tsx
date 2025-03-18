@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { useSettings } from '../hooks/useSettings';
 import { ExpenseCategory } from '../utils/types';
 import { formatCurrency } from '../utils/helpers';
+import { resetAllData } from '../utils/storage';
+import { useRouter } from 'next/navigation';
 
 type SettingsProps = {
   loading: boolean;
 };
 
 export default function Settings({ loading }: SettingsProps) {
+  const router = useRouter();
   const { settings, updateBudgetLimits, createCategory, editCategory, removeCategory } = useSettings();
   
   const [weekly, setWeekly] = useState<number>(settings?.budgetLimits.weekly || 0);
@@ -22,6 +25,9 @@ export default function Settings({ loading }: SettingsProps) {
   const [editingCategory, setEditingCategory] = useState<ExpenseCategory | null>(null);
   const [editCategoryName, setEditCategoryName] = useState('');
   const [editCategoryColor, setEditCategoryColor] = useState('');
+  
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
 
   // Handle budget limits update
   const handleBudgetSubmit = (e: React.FormEvent) => {
@@ -90,6 +96,22 @@ export default function Settings({ loading }: SettingsProps) {
       removeCategory(id);
       alert('Category removed successfully!');
     }
+  };
+  
+  // Handle application data reset
+  const handleResetData = () => {
+    if (resetConfirmText !== 'RESET') {
+      alert('Please type "RESET" to confirm');
+      return;
+    }
+    
+    resetAllData();
+    setShowResetConfirm(false);
+    setResetConfirmText('');
+    alert('All data has been reset successfully! The page will now refresh.');
+    
+    // Refresh the page to reflect changes
+    window.location.reload();
   };
 
   if (loading || !settings) {
@@ -282,6 +304,56 @@ export default function Settings({ loading }: SettingsProps) {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Reset Data Section */}
+      <div className="mt-8">
+        <div className="card border-red-200 bg-red-50">
+          <h2 className="text-xl font-semibold text-red-800 mb-4">Reset Application Data</h2>
+          <p className="text-gray-700 mb-4">
+            This action will permanently delete all your expenses, categories, budget limits, and other settings. This cannot be undone.
+          </p>
+          
+          {!showResetConfirm ? (
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+            >
+              Reset All Data
+            </button>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-red-100 border border-red-300 rounded-md">
+                <p className="text-red-800 font-medium">
+                  To confirm, please type "RESET" in the field below:
+                </p>
+                <input
+                  type="text"
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  className="mt-2 input border-red-300 focus:border-red-500 focus:ring-red-500"
+                  placeholder="Type RESET to confirm"
+                />
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="btn btn-outline"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleResetData}
+                  className="btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+                  disabled={resetConfirmText !== 'RESET'}
+                >
+                  Permanently Delete All Data
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

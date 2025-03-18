@@ -1,4 +1,4 @@
-import { Expense, ExpenseCategory, UserSettings } from './types';
+import { Expense, ExpenseCategory, UserSettings, UserProfile, Income } from './types';
 
 // Default categories with colors
 const DEFAULT_CATEGORIES: ExpenseCategory[] = [
@@ -13,6 +13,14 @@ const DEFAULT_CATEGORIES: ExpenseCategory[] = [
   { id: '9', name: 'Other', color: '#808080' },
 ];
 
+// Default user profile
+const DEFAULT_PROFILE: UserProfile = {
+  name: 'Your Name',
+  currency: 'USD',
+  incomes: [],
+  savingsGoal: 0
+};
+
 // Default user settings
 const DEFAULT_SETTINGS: UserSettings = {
   categories: DEFAULT_CATEGORIES,
@@ -21,6 +29,8 @@ const DEFAULT_SETTINGS: UserSettings = {
     monthly: 1200,
     yearly: 15000,
   },
+  profile: DEFAULT_PROFILE,
+  theme: 'light'
 };
 
 // Initialize local storage with default values if nothing exists
@@ -34,6 +44,14 @@ export const initializeStorage = () => {
   if (!localStorage.getItem('userSettings')) {
     localStorage.setItem('userSettings', JSON.stringify(DEFAULT_SETTINGS));
   }
+};
+
+// Reset all data to defaults
+export const resetAllData = () => {
+  if (typeof window === 'undefined') return;
+  
+  localStorage.setItem('expenses', JSON.stringify([]));
+  localStorage.setItem('userSettings', JSON.stringify(DEFAULT_SETTINGS));
 };
 
 // Get all expenses
@@ -109,5 +127,48 @@ export const deleteCategory = (id: string): void => {
   if (typeof window === 'undefined') return;
   const settings = getUserSettings();
   settings.categories = settings.categories.filter((cat) => cat.id !== id);
+  updateUserSettings(settings);
+};
+
+// Get user profile
+export const getUserProfile = (): UserProfile => {
+  if (typeof window === 'undefined') return DEFAULT_PROFILE;
+  const settings = getUserSettings();
+  return settings.profile || DEFAULT_PROFILE;
+};
+
+// Update user profile
+export const updateUserProfile = (profile: UserProfile): void => {
+  if (typeof window === 'undefined') return;
+  const settings = getUserSettings();
+  settings.profile = profile;
+  updateUserSettings(settings);
+};
+
+// Add income
+export const addIncome = (income: Income): void => {
+  if (typeof window === 'undefined') return;
+  const settings = getUserSettings();
+  settings.profile.incomes.push(income);
+  updateUserSettings(settings);
+};
+
+// Update income
+export const updateIncome = (updatedIncome: Income): void => {
+  if (typeof window === 'undefined') return;
+  const settings = getUserSettings();
+  const index = settings.profile.incomes.findIndex((inc) => inc.id === updatedIncome.id);
+  
+  if (index !== -1) {
+    settings.profile.incomes[index] = updatedIncome;
+    updateUserSettings(settings);
+  }
+};
+
+// Delete income
+export const deleteIncome = (id: string): void => {
+  if (typeof window === 'undefined') return;
+  const settings = getUserSettings();
+  settings.profile.incomes = settings.profile.incomes.filter((inc) => inc.id !== id);
   updateUserSettings(settings);
 }; 

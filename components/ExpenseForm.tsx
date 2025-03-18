@@ -27,6 +27,7 @@ type ExpenseFormProps = {
     date: string;
     recurring?: RecurringType;
   };
+  currency?: string;
 };
 
 export default function ExpenseForm({
@@ -34,6 +35,7 @@ export default function ExpenseForm({
   onCancel,
   categories,
   initialData,
+  currency = 'USD',
 }: ExpenseFormProps) {
   const [amount, setAmount] = useState(initialData?.amount || 0);
   const [description, setDescription] = useState(initialData?.description || '');
@@ -44,6 +46,20 @@ export default function ExpenseForm({
     initialData?.recurring?.frequency || 'monthly'
   );
   const [recurringEndDate, setRecurringEndDate] = useState(initialData?.recurring?.endDate || '');
+
+  // Get currency symbol
+  const getCurrencySymbol = (currency: string): string => {
+    switch (currency) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'JPY': return '¥';
+      case 'CAD': return 'C$';
+      case 'AUD': return 'A$';
+      case 'INR': return '₹';
+      default: return '$';
+    }
+  };
 
   // Update category if initial categories change
   useEffect(() => {
@@ -88,7 +104,7 @@ export default function ExpenseForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="amount" className="label">
-          Amount ($)
+          Amount ({getCurrencySymbol(currency)})
         </label>
         <input
           type="number"
@@ -157,13 +173,13 @@ export default function ExpenseForm({
           onChange={(e) => setIsRecurring(e.target.checked)}
           className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
         />
-        <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700">
+        <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           This is a recurring expense
         </label>
       </div>
       
       {isRecurring && (
-        <div className="space-y-4 pl-6 border-l-2 border-gray-200">
+        <div className="space-y-4 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
           <div>
             <label htmlFor="recurringFrequency" className="label">
               Frequency
